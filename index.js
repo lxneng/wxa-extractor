@@ -51,4 +51,4 @@ app.get("/", async (req, res) => {
   return res.json({'err_msg': '', 'result': result})
 })
 
-app.listen(5000, () => {console.log(`app listening on port 5000`})
+app.listen(5000, () => {console.log(`app listening on port 5000`)})
