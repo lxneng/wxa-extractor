@@ -1,6 +1,8 @@
 const express = require("express")
 const axios = require("axios")
 const app = express()
+const cheerio = require('cheerio')
+
 
 const extract_wxa_cards = async (purl) => {
   let html
@@ -39,12 +41,42 @@ const extract_wxa_cards = async (purl) => {
   return unique_wxa_data
 }
 
+const extract_profile = async (purl) => {
+  rsp = await axios({
+    url: purl,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 12_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/7.0.4(0x17000428) NetType/4G Language/zh_CN",
+      "Content-Type": "text/html; charset=UTF-8"}
+  })
+  const $ = cheerio.load(rsp.data)
+  return {
+    'biz': rsp.data.match(/biz = ""\|\|"(.*)";/)[1],
+    'wxid': $('span.profile_meta_value').eq(0).text(),
+    'nickname': $('strong.profile_nickname').text(),
+    'intro': $('span.profile_meta_value').eq(1).text()
+  }
+}
+
 app.get("/", async (req, res) => {
   if (req.query.url===undefined){
     return res.json({'err_msg': 'url query parameter required!'})
   }
   result = await extract_wxa_cards(req.query.url)
   return res.json({'err_msg': '', 'result': result})
+})
+
+app.get("/profile", async (req, res) => {
+  if (req.query.url===undefined){
+    return res.json({'err_msg': 'url query parameter required!'})
+  }
+  let err_msg = ''
+  try {
+    result = await extract_profile(req.query.url)
+  } catch (error) {
+    err_msg = error.message
+    result = {}
+  }
+  return res.json({'err_msg': err_msg, 'result': result})
 })
 
 app.listen(5000, () => {console.log(`app listening on port 5000`)})
