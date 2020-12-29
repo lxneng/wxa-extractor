@@ -50,7 +50,7 @@ const extract_profile = async (purl) => {
   })
   const $ = cheerio.load(rsp.data)
   return {
-    'biz': rsp.data.match(/biz = ""\|\|"(.*)";/)[1],
+    'biz': rsp.data.match(/biz = ""\s?\|\|\s?"(.*)";/)[1],
     'wxid': $('span.profile_meta_value').eq(0).text(),
     'nickname': $('strong.profile_nickname').text(),
     'intro': $('span.profile_meta_value').eq(1).text()
